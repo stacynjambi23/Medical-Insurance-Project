@@ -1,0 +1,551 @@
+---
+title: "MEDICAL INSURANCE DATA ANALYSIS PROJECT"
+author: "STACY NJAMBI-DATA ANALYST"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+### SETTING THE WORKING DIRECTORY
+```{r}
+setwd("C:/Users/User/Desktop/E-Commerce Project")
+```
+
+
+
+### IMPORTING THE DATA
+```{r}
+library(tidyverse)
+
+insurance_data <- read.csv("insurance_data.csv")
+head(insurance_data)
+```
+
+
+## Structure
+```{r}
+str(insurance_data)
+```
+
+
+```{r}
+summary(insurance_data)
+```
+
+
+
+### DATA CLEANING
+## Check missing Values
+```{r}
+missing_values <- sum(is.na(insurance_data))
+print(missing_values)
+```
+
+
+## Check Duplicate Values
+```{r}
+duplicated_values <- sum(duplicated(insurance_data))
+print(duplicated_values)
+```
+
+
+```{r}
+library(dplyr)
+insurance_data <- distinct(insurance_data)
+```
+
+
+```{r}
+duplicated_values <- sum(duplicated(insurance_data))
+print(duplicated_values)
+```
+
+
+```{r}
+unique(insurance_data$sex)
+```
+
+
+## Detect Outliers
+```{r}
+boxplot(insurance_data$charges,main = "Charges Distribution")
+boxplot(insurance_data$age,main = "Age Distribution")
+boxplot(insurance_data$bmi, main = "BMI Distribution")
+```
+
+
+## Handling outliers
+```{r}
+Q1 <- quantile(insurance_data$charges, 0.25, na.rm = TRUE)
+Q3 <- quantile(insurance_data$charges, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5*IQR
+upper_bound <- Q3 + 1.5*IQR
+d_cleaned <- insurance_data[insurance_data$charges >= lower_bound & insurance_data$charges <= upper_bound, ]
+```
+
+
+```{r}
+Q1 <- quantile(d_cleaned$bmi, 0.25, na.rm = TRUE)
+Q3 <- quantile(d_cleaned$bmi, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5*IQR
+upper_bound <- Q3 + 1.5*IQR
+d_cleaned <- d_cleaned[d_cleaned$bmi >= lower_bound & d_cleaned$bmi <= upper_bound, ]
+```
+
+
+```{r}
+boxplot(d_cleaned$charges,main = "Charges Distribution")
+boxplot(d_cleaned$bmi, main = "BMI Distribution")
+```
+
+
+```{r}
+Q1 <- quantile(d_cleaned$charges, 0.25, na.rm = TRUE)
+Q3 <- quantile(d_cleaned$charges, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5*IQR
+upper_bound <- Q3 + 1.5*IQR
+g_cleaned <- d_cleaned[d_cleaned$charges >= lower_bound & d_cleaned$charges <= upper_bound, ]
+```
+
+
+```{r}
+boxplot(g_cleaned$charges,main = "Charges Distribution")
+```
+
+
+```{r}
+Q1 <- quantile(g_cleaned$charges, 0.25, na.rm = TRUE)
+Q3 <- quantile(g_cleaned$charges, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5*IQR
+upper_bound <- Q3 + 1.5*IQR
+g_cleaned <- g_cleaned[g_cleaned$charges >= lower_bound & g_cleaned$charges <= upper_bound, ]
+```
+
+
+```{r}
+boxplot(g_cleaned$charges,main = "Charges Distribution")
+```
+
+
+```{r}
+Q1 <- quantile(g_cleaned$charges, 0.25, na.rm = TRUE)
+Q3 <- quantile(g_cleaned$charges, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5*IQR
+upper_bound <- Q3 + 1.5*IQR
+g_cleaned <- g_cleaned[g_cleaned$charges >= lower_bound & g_cleaned$charges <= upper_bound, ]
+```
+
+
+```{r}
+boxplot(g_cleaned$charges,main = "Charges Distribution")
+```
+
+
+
+### DATA MANIPULATION
+```{r}
+g_cleaned <- g_cleaned %>%
+  mutate(
+    sex = as.factor(sex),
+    smoker = as.factor(smoker),
+    region = as.factor(region))
+```
+
+
+```{r}
+g_cleaned <- g_cleaned |>
+  mutate(age_group = case_when(
+    age < 20 ~ "Young",
+    age >= 20 & age <= 35 ~ "Youth",
+    age >=36 & age <= 59 ~ "Adult",
+    age >= 60 ~ "Old"
+  ))
+head(g_cleaned)
+View(g_cleaned)
+```
+
+
+```{r}
+g_cleaned <- g_cleaned |>
+  mutate(bmi_category = case_when(
+    bmi < 18.5 ~ "Underweight",
+    bmi >= 18.5 & bmi <= 24.9 ~ "Normal",
+    bmi >= 25 & bmi <= 29.9 ~ "Overweight",
+    bmi >= 30 ~ "Obese",
+    TRUE ~ NA_character_
+  ))
+head(g_cleaned)
+View(g_cleaned)
+```
+
+
+```{r}
+g_cleaned <- g_cleaned[!is.na(g_cleaned$bmi_category), ]
+```
+
+```{r}
+g_cleaned |>
+  filter(age > 60) |>
+  select(age, bmi, smoker, charges)
+```
+
+
+```{r}
+g_cleaned |>
+  filter(smoker == "yes",
+         age > 30) |>
+  arrange(desc(charges))
+```
+
+
+```{r}
+g_cleaned |>
+  group_by(region) |>
+  summarise(
+    mean_charges = mean(charges, na.rm = TRUE),
+    min_charges = min(charges, na.rm = TRUE),
+    max_charges = max(charges, na.rm = TRUE),
+    median_charges = median(charges, na.rm = TRUE)
+  )
+```
+
+
+
+### DATA VISUALIZATION
+```{r}
+summary(g_cleaned)
+```
+
+## Report of the summary above
+The dataset contains 1,104 observations on demographic characteristics, lifestyle factors, and insurance charges. Respondents range from 18 to 64 years, with an average age of 38 years. The gender distribution is relatively balanced, and non-smokers form the majority of the sample. Insurance charges vary widely, ranging from 1,122 to 23,568, indicating substantial differences in healthcare costs among individuals.
+
+
+```{r}
+smokers_data <- g_cleaned |>
+  filter(smoker == "yes")
+
+summary(smokers_data$charges)
+```
+
+
+## Histogram
+```{r}
+g_cleaned |>
+  ggplot(aes(x = charges)) +
+  geom_histogram(color = "black", fill = "pink", bins = 30) +
+  labs(
+    x = "Insurance Charges",
+    y = "Number of Respondents",
+    title = "Histogram Showing Distribution of Insurance Charges",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_classic()
+```
+
+## Report of the results above
+The distribution of insurance charges is right-skewed, with most charges concentrated at lower values and a long tail extending toward higher charges. This suggests that while the majority of individuals incur moderate healthcare expenses, a smaller proportion experience substantially higher medical costs. There also appears to be a small secondary concentration of charges at higher values, which may indicate the influence of specific risk factors such as smoking or obesity.
+
+
+```{r}
+ggplot(g_cleaned, aes(x =bmi)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  labs(
+    title = "Distribution of BMI",
+    x = "bmi",
+    y = "Frequency"
+  )
+```
+
+
+## Report of the results above
+The histogram shows the distribution of BMI among respondents in the insurance dataset. Most respondents have BMI values between 25 and 35, with the highest concentration around 30. This indicates that many individuals fall within the overweight category. Very low and very high BMI values are less common, showing that extreme BMI levels are rare in the dataset. Overall, the distribution appears approximately normal with moderate variation in BMI values.
+
+
+## Barchart
+```{r, fig.height = 4, fig.width = 4} 
+g_cleaned |>
+  ggplot(aes(x = smoker, fill = smoker)) +
+  geom_bar() +
+  labs(
+    x = "Smoking Status",
+    y = "Number of Respondents",
+    title = "Bar Chart Showing Smoking Status",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_classic()
+```
+
+## Report of the results above
+Non-smokers make up the large majority of the data set.
+
+
+```{r}
+g_cleaned %>%
+  group_by(age_group) %>%
+  summarise(mean_charges = mean(charges)) %>%
+  ggplot(aes(x = age_group, y = mean_charges, fill = age_group)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(x = "Age_group",
+       y = "Mean Charges",
+       title = "A bar plot showing mean insurance charges across age groups",
+       caption = "source: Insurance Data set, 2026") +
+  theme_bw()
+```
+
+
+## Report of the results above
+From the results old people consumes more insurance(ages over 60), followed by adults(ages between 35 and 59),the young people consume less insurance.
+
+
+## Pie Chart
+```{r}
+head(g_cleaned[, c("region", "charges")])
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+g_cleaned |>
+  group_by(region) |>
+  summarise(total_charges = sum(charges)) |>
+  mutate(pct = total_charges / sum(total_charges),
+         label = paste0(region, "\n", scales::percent(pct, accuracy = 0.1))) |>
+  ggplot(aes(x = "", y = total_charges, fill = region)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 4) +
+  labs(title = "Total Charges by Region", fill = "Region") +
+  theme_void()
+```
+
+
+The pie chart shows the southeast region accounts for the largest share of total charges at 30.2%, while the other three regions (northeast 24.5%, northwest 22.7%, southwest 22.6%) are fairly evenly split.
+
+
+
+## Box plot
+```{r}
+g_cleaned |>
+  ggplot(aes(x = sex, y = charges)) +
+  geom_boxplot(fill = "violet") +
+  labs(
+    x = "Sex",
+    y = "Insurance Charges",
+    title = "Boxplot Showing Charges by Sex",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_classic()
+```
+
+The boxplot reveals that insurance charges are broadly similar between males and females, suggesting that sex alone does not strongly differentiate insurance costs.
+
+
+
+```{r}
+g_cleaned |>
+  ggplot(aes(x = bmi_category, y = charges)) +
+  geom_boxplot(fill = "skyblue") +
+  labs(
+    x = "BMI_Category",
+    y = "Insurance Charges",
+    title = "Boxplot Showing Charges by BMI Category",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_classic()
+```
+
+The boxplot shows that insurance charges are fairly consistent across BMI categories. Normal weight individuals have the highest median charges, followed closely by the Overweight and Obese groups, which are nearly equal in their central values. Underweight individuals tend to have the lowest charges. The wide spread across all categories suggests that BMI category alone is not a strong predictor of insurance costs.
+
+
+
+## Scatterplot
+## Scatterplot of Age and Insurance
+```{r}
+g_cleaned |>
+  ggplot(aes(x = age, y = charges)) +
+  geom_point(color = "purple") +
+  labs(
+    x = "Age",
+    y = "Insurance Charges",
+    title = "Scatterplot Showing Age and Insurance Charges",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_bw()
+```
+
+The scatterplot reveals a positive relationship between age and insurance charges — as age increases, charges tend to rise. Two distinct bands are visible: a lower band where charges increase gradually with age, and an upper band of consistently higher charges across all age groups, likely driven by high-risk individuals such as smokers. This pattern suggests that while age is a contributing factor, other characteristics significantly influence the level of charges.
+
+
+
+```{r}
+g_cleaned |>
+  ggplot(aes(x = bmi, y = charges)) +
+  geom_point(color = "brown") +
+  labs(
+    x = "BMI",
+    y = "Insurance Charges",
+    title = "Scatterplot Showing BMI and Insurance Charges",
+    caption = "Source: Insurance Dataset, 2026"
+  ) +
+  theme_classic()
+```
+
+
+The scatterplot shows no clear linear relationship between BMI and insurance charges. Points are widely scattered across all BMI values, suggesting that BMI on its own is a weak predictor of charges. 
+
+
+
+## Chi-Square
+#H0: Smoking status is independent of gender.
+#H1: Smoking status is associated with gender.
+```{r}
+chisq_table <- table(g_cleaned$sex, g_cleaned$smoker)
+
+chisq.test(chisq_table)
+```
+
+Since the p-value is greater than 0.05, we fail to reject the null hypothesis. This suggests that smoking status is independent of gender.
+
+
+
+## Chi-Sqaure
+#H0:There is a significant association between gender and smoking status.
+#H1:There is a no significant association between gender and smoking status.
+#H0:There is a significant association between region and smoking status.
+#H1:There is no significant association between region and smoking statu
+```{r}
+library(gtsummary)
+
+g_cleaned |>
+  select(age, bmi, children, smoker, sex, region, charges) |>
+  tbl_summary(by = smoker) |>
+  add_ci() |>
+  add_p(test = list(
+    all_categorical() ~ "chisq.test",
+    all_continuous() ~ "anova"
+  ))
+```
+
+
+The chi-square test results indicate no significant association between smoking status and sex (p = 0.6), region (p = 0.5), or number of children (p > 0.9), since all p-values are greater than 0.05. However, smokers recorded substantially higher insurance charges compared to non-smokers.
+
+
+
+## Heatmap
+```{r}
+ library(corrplot)
+
+g_cleaned |>
+  select(age, bmi, children, charges) |>
+  cor(use = "complete.obs") |>
+  corrplot(method = "color", addCoef.col = "black", tl.col = "black") 
+```
+
+The correlation heatmap shows that age has the strongest relationship with insurance charges (r = 0.52), while BMI and number of children have negligible correlations with charges. Age is the only numeric variable with a meaningful linear association with insurance costs.
+
+
+
+
+### HYPOTHESIS TESTING
+## Two Sample t-test
+#H0: Mean charges (male) = Mean charges (female)
+#H1: Mean charges (male) ≠ Mean charges (female)
+```{r}
+# Perform two sample t-test
+t_test_result <- t.test(charges ~ sex, data = g_cleaned)
+t_test_result
+```
+
+## Conclusion
+Since the p-value (0.4795) is greater than 0.05, we fail to reject the null hypothesis. There is no statistically significant difference in mean insurance charges between males and females.
+
+
+
+## Two-sample t-test 
+#H0: No difference in mean charges between smokers and non-smokers
+#H1: Difference exists
+```{r}
+# Perform two-sample t-test
+t_test_result <- t.test(charges ~ smoker, data = g_cleaned)
+print(t_test_result)
+```
+
+## Conclusion
+We reject the null hypothesis. There is strong statistical evidence that insurance charges differ significantly between smokers and non-smokers. Smokers have substantially higher mean charges than non-smokers.
+
+
+
+### REGRESSION
+## Simple Linear Regression
+#h0: BMI has no significant effect on insurance charges.
+#H1: BMI significantly affects insurance charges.
+```{r}
+model_charges <- lm(charges ~ bmi, data = g_cleaned)
+
+summary(model_charges)
+```
+
+Results indicate that BMI is not a statistically significant predictor of insurance charges since the p-value (0.0604) is greater than 0.05. Additionally, the R-squared value of 0.0032 shows that BMI explains only a very small proportion of the variation in insurance charges.
+
+
+## Mulitiple Linear Regression
+#H0: The predictors do not significantly influence insurance charges.
+#H1: At least one predictor significantly influences insurance charges.
+```{r}
+model_charges <- lm(charges ~ age + bmi + smoker + children,data = g_cleaned)
+summary(model_charges)
+
+```
+
+
+The multiple linear regression results show that age, smoking status, and number of children are significant predictors of insurance charges since their p-values are less than 0.05. In particular, smokers incur substantially higher insurance charges compared to non-smokers. However, BMI is not a statistically significant predictor because its p-value (0.134) exceeds 0.05. The model has an R-squared value of 0.6897, indicating that approximately 68.97% of the variation in insurance charges is explained by the predictors included in the model.
+
+
+
+## SPECIAL THANKS TO CENTER FOR DATA ANALYTICS AND MODELLING-CHUKA UNIVERSITY
+## CERTIFICATION COURSE:INTRODUCTION TO R FOR DATA SCIENCE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
